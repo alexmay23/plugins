@@ -1,3 +1,13 @@
+## 2.0.5
+
+* Updates code for new analysis options.
+* Update to use the `verify` method introduced in platform_plugin_interface 2.1.0.
+
+## 2.0.4
+
+* Silenced warnings that may occur during build when using a very
+  recent version of Flutter relating to null safety.
+
 ## 2.0.3
 
 * Migrate `pushRouteNameToFramework` to use ChannelBuffers API.

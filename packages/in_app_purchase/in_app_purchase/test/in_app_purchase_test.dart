@@ -65,7 +65,7 @@ void main() {
 
     test('queryProductDetails', () async {
       final ProductDetailsResponse response =
-          await inAppPurchase.queryProductDetails(Set<String>());
+          await inAppPurchase.queryProductDetails(<String>{});
       expect(response.notFoundIDs.isEmpty, true);
       expect(response.productDetails.isEmpty, true);
       expect(fakePlatform.log, <Matcher>[
@@ -87,15 +87,35 @@ void main() {
     });
 
     test('buyConsumable', () async {
+      final PurchaseParam purchaseParam =
+          PurchaseParam(productDetails: productDetails);
       final bool result = await inAppPurchase.buyConsumable(
-        purchaseParam: PurchaseParam(
-          productDetails: productDetails,
-        ),
+        purchaseParam: purchaseParam,
       );
 
       expect(result, true);
       expect(fakePlatform.log, <Matcher>[
-        isMethodCall('buyConsumable', arguments: null),
+        isMethodCall('buyConsumable', arguments: <dynamic, dynamic>{
+          'purchaseParam': purchaseParam,
+          'autoConsume': true,
+        }),
+      ]);
+    });
+
+    test('buyConsumable with autoConsume=false', () async {
+      final PurchaseParam purchaseParam =
+          PurchaseParam(productDetails: productDetails);
+      final bool result = await inAppPurchase.buyConsumable(
+        purchaseParam: purchaseParam,
+        autoConsume: false,
+      );
+
+      expect(result, true);
+      expect(fakePlatform.log, <Matcher>[
+        isMethodCall('buyConsumable', arguments: <dynamic, dynamic>{
+          'purchaseParam': purchaseParam,
+          'autoConsume': false,
+        }),
       ]);
     });
 
@@ -120,31 +140,33 @@ void main() {
 class MockInAppPurchasePlatform extends Fake
     with MockPlatformInterfaceMixin
     implements InAppPurchasePlatform {
-  final List<MethodCall> log = [];
+  final List<MethodCall> log = <MethodCall>[];
 
   @override
   Future<bool> isAvailable() {
-    log.add(MethodCall('isAvailable'));
-    return Future.value(true);
+    log.add(const MethodCall('isAvailable'));
+    return Future<bool>.value(true);
   }
 
   @override
   Stream<List<PurchaseDetails>> get purchaseStream {
-    log.add(MethodCall('purchaseStream'));
-    return Stream.empty();
+    log.add(const MethodCall('purchaseStream'));
+    return const Stream<List<PurchaseDetails>>.empty();
   }
 
   @override
   Future<ProductDetailsResponse> queryProductDetails(Set<String> identifiers) {
-    log.add(MethodCall('queryProductDetails'));
-    return Future.value(
-        ProductDetailsResponse(productDetails: [], notFoundIDs: []));
+    log.add(const MethodCall('queryProductDetails'));
+    return Future<ProductDetailsResponse>.value(ProductDetailsResponse(
+      productDetails: <ProductDetails>[],
+      notFoundIDs: <String>[],
+    ));
   }
 
   @override
   Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) {
-    log.add(MethodCall('buyNonConsumable'));
-    return Future.value(true);
+    log.add(const MethodCall('buyNonConsumable'));
+    return Future<bool>.value(true);
   }
 
   @override
@@ -152,19 +174,22 @@ class MockInAppPurchasePlatform extends Fake
     required PurchaseParam purchaseParam,
     bool autoConsume = true,
   }) {
-    log.add(MethodCall('buyConsumable'));
-    return Future.value(true);
+    log.add(MethodCall('buyConsumable', <String, Object?>{
+      'purchaseParam': purchaseParam,
+      'autoConsume': autoConsume,
+    }));
+    return Future<bool>.value(true);
   }
 
   @override
   Future<void> completePurchase(PurchaseDetails purchase) {
-    log.add(MethodCall('completePurchase'));
-    return Future.value(null);
+    log.add(const MethodCall('completePurchase'));
+    return Future<void>.value(null);
   }
 
   @override
   Future<void> restorePurchases({String? applicationUserName}) {
-    log.add(MethodCall('restorePurchases'));
-    return Future.value(null);
+    log.add(const MethodCall('restorePurchases'));
+    return Future<void>.value(null);
   }
 }

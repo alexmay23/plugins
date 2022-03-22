@@ -22,7 +22,7 @@ typedef LinkWidgetBuilder = Widget Function(
 /// Signature for a delegate function to build the [Link] widget.
 typedef LinkDelegate = Widget Function(LinkInfo linkWidget);
 
-final MethodCodec _codec = const JSONMethodCodec();
+const MethodCodec _codec = JSONMethodCodec();
 
 /// Defines where a Link URL should be open.
 ///
@@ -42,20 +42,21 @@ class LinkTarget {
   ///
   /// iOS, on the other hand, defaults to [self] for web URLs, and [blank] for
   /// non-web URLs.
-  static const defaultTarget = LinkTarget._(debugLabel: 'defaultTarget');
+  static const LinkTarget defaultTarget =
+      LinkTarget._(debugLabel: 'defaultTarget');
 
   /// On the web, this opens the link in the same tab where the flutter app is
   /// running.
   ///
   /// On Android and iOS, this opens the link in a webview within the app.
-  static const self = LinkTarget._(debugLabel: 'self');
+  static const LinkTarget self = LinkTarget._(debugLabel: 'self');
 
   /// On the web, this opens the link in a new tab or window (depending on the
   /// browser and user configuration).
   ///
   /// On Android and iOS, this opens the link in the browser or the relevant
   /// app.
-  static const blank = LinkTarget._(debugLabel: 'blank');
+  static const LinkTarget blank = LinkTarget._(debugLabel: 'blank');
 }
 
 /// Encapsulates all the information necessary to build a Link widget.
@@ -87,9 +88,10 @@ typedef _SendMessage = Function(String, ByteData?, void Function(ByteData?));
 Future<ByteData> pushRouteNameToFramework(Object? _, String routeName) {
   final Completer<ByteData> completer = Completer<ByteData>();
   SystemNavigator.routeInformationUpdated(location: routeName);
-  final _SendMessage sendMessage =
-      WidgetsBinding.instance?.platformDispatcher.onPlatformMessage ??
-          ui.channelBuffers.push;
+  final _SendMessage sendMessage = _ambiguate(WidgetsBinding.instance)
+          ?.platformDispatcher
+          .onPlatformMessage ??
+      ui.channelBuffers.push;
   sendMessage(
     'flutter/navigation',
     _codec.encodeMethodCall(
@@ -102,3 +104,10 @@ Future<ByteData> pushRouteNameToFramework(Object? _, String routeName) {
   );
   return completer.future;
 }
+
+/// This allows a value of type T or T? to be treated as a value of type T?.
+///
+/// We use this so that APIs that have become non-nullable can still be used
+/// with `!` and `?` on the stable branch.
+// TODO(ianh): Remove this once we roll stable in late 2021.
+T? _ambiguate<T>(T? value) => value;
