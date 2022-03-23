@@ -26,6 +26,8 @@ id GetNullableValueForKey(NSDictionary *dict, NSString *key) {
   return value == [NSNull null] ? nil : value;
 }
 
+#define videoUtiTypes @[ (NSString *)kUTTypeMovie, (NSString *)kUTTypeAVIMovie, (NSString *)kUTTypeVideo, (NSString *)kUTTypeMPEG4]
+
 @interface FLTImagePickerPlugin () <UINavigationControllerDelegate,
                                     UIImagePickerControllerDelegate,
                                     PHPickerViewControllerDelegate,
@@ -91,7 +93,7 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
 - (UIViewController *)viewControllerWithWindow:(UIWindow *)window {
   UIWindow *windowToUse = window;
   if (windowToUse == nil) {
-    for (UIWindow *window in [UIApplication sharedApplication].windows) {
+    for (UIWindow *window in  [UIApplication sharedApplication].windows) {
       if (window.isKeyWindow) {
         windowToUse = window;
         break;
@@ -186,7 +188,12 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
     }
   } else if ([@"pickMultiImage" isEqualToString:call.method]) {
     if (@available(iOS 14, *)) {
-      [self pickImageWithPHPicker:0];
+      int maxImageCount = 0;
+      id maxImageCountParameter = GetNullableValueForKey(call.arguments, @"maxImageCount");
+      if (maxImageCountParameter != nil && [maxImageCountParameter isKindOfClass:[NSNumber class]]) {
+        maxImageCount = (int) [(NSNumber *) maxImageCountParameter integerValue];
+      }
+      [self pickImageWithPHPicker:maxImageCount];
     } else {
       [self launchUIImagePickerWithSource:SOURCE_GALLERY];
     }
@@ -194,10 +201,7 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
     UIImagePickerController *imagePickerController = [self createImagePickerController];
     imagePickerController.modalPresentationStyle = UIModalPresentationCurrentContext;
     imagePickerController.delegate = self;
-    imagePickerController.mediaTypes = @[
-      (NSString *)kUTTypeMovie, (NSString *)kUTTypeAVIMovie, (NSString *)kUTTypeVideo,
-      (NSString *)kUTTypeMPEG4
-    ];
+    imagePickerController.mediaTypes = videoUtiTypes;
     imagePickerController.videoQuality = UIImagePickerControllerQualityTypeHigh;
 
     int imageSource = [call.arguments[@"source"] intValue];
@@ -471,13 +475,37 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
 }
 
 - (void)finishWithVideoURL:(NSURL *)videoURL {
-  if (@available(iOS 13.0, *)) {
-    NSString *fileName = [videoURL lastPathComponent];
-    NSURL *destination =
-        [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:fileName]];
+    if (@available(iOS 13.0, *)) {
+        NSString *fileName = [videoURL lastPathComponent];
+        NSURL *destination =
+                [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:fileName]];
+
+        if ([[NSFileManager defaultManager] isReadableFileAtPath:[videoURL path]]) {
+            NSError *error;
+            if (![[videoURL path] isEqualToString:[destination path]]) {
+                [[NSFileManager defaultManager] copyItemAtURL:videoURL toURL:destination error:&error];
+
+                if (error) {
+                    self.result([FlutterError errorWithCode:@"flutter_image_picker_copy_video_error"
+                                                    message:@"Could not cache the video file."
+                                                    details:nil]);
+                    self.result = nil;
+                    return;
+                }
+            }
+            videoURL = destination;
+        }
+    }
+
+    self.result(videoURL.path);
+    self.result = nil;
+    _arguments = nil;
+}
+
 - (void)imagePickerController:(UIImagePickerController *)picker
     didFinishPickingMediaWithInfo:(NSDictionary<NSString *, id> *)info {
   NSURL *videoURL = info[UIImagePickerControllerMediaURL];
+
   [picker dismissViewControllerAnimated:YES completion:nil];
   // The method dismissViewControllerAnimated does not immediately prevent
   // further didFinishPickingMediaWithInfo invocations. A nil check is necessary
@@ -486,47 +514,7 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   if (!self.result) {
     return;
   }
-  if (videoURL != nil) {
-    if (@available(iOS 13.0, *)) {
-      NSString *fileName = [videoURL lastPathComponent];
-      NSURL *destination =
-          [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:fileName]];
-
-    if ([[NSFileManager defaultManager] isReadableFileAtPath:[videoURL path]]) {
-      NSError *error;
-      if (![[videoURL path] isEqualToString:[destination path]]) {
-        [[NSFileManager defaultManager] copyItemAtURL:videoURL toURL:destination error:&error];
-
-        if (error) {
-          self.result([FlutterError errorWithCode:@"flutter_image_picker_copy_video_error"
-                                          message:@"Could not cache the video file."
-                                          details:nil]);
-          self.result = nil;
-          return;
-        }
-      }
-      videoURL = destination;
-    }
-  }
-
-  self.result(videoURL.path);
-  self.result = nil;
-  _arguments = nil;
-}
-
-- (void)imagePickerController:(UIImagePickerController *)picker
-    didFinishPickingMediaWithInfo:(NSDictionary<NSString *, id> *)info {
-  NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
-
-  [_imagePickerController dismissViewControllerAnimated:YES completion:nil];
-  // The method dismissViewControllerAnimated does not immediately prevent
-  // further didFinishPickingMediaWithInfo invocations. A nil check is necessary
-  // to prevent below code to be unwantly executed multiple times and cause a
-  // crash.
-  if (!self.result) {
-    return;
-  }
-  if (videoURL != nil || [picker.mediaTypes containsObject:(NSString *)kUTTypeMovie]) {
+  if (videoURL != nil || [[NSSet setWithArray:picker.mediaTypes] intersectsSet: [NSSet setWithArray:videoUtiTypes]] ) {
     if (videoURL == nil) {
       PHAsset *originalAsset = [FLTImagePickerPhotoAssetUtil getAssetFromImagePickerInfo:info];
       __weak typeof(self) weakSelf = self;
@@ -628,7 +616,7 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
  *
  * @param pathList that should be applied to FlutterResult.
  */
-- (void)handleSavedPathList:(NSArray *)pathList {
+- (void)handleSavedPathList: (NSArray *)pathList {
   if (!self.result) {
     return;
   }
