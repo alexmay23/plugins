@@ -25,7 +25,7 @@ dependencies:
     git:
       url: git@github.com:alexmay23/plugins.git
       path: packages/image_picker/image_picker_platform_interface
-      ref: e6fcc829a706fcc8cea56d22b17c01ca010740cf
+      ref: e69db7806165693b5250db384cd03cf6b23871d4
 
 dev_dependencies:
   flutter_test:
