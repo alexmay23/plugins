@@ -36,8 +36,12 @@ class MethodChannelImagePicker extends ImagePickerPlatform {
   }
 
   @override
-  Future<List<PickedFile>?> pickMultiImage(
-      {double? maxWidth, double? maxHeight, int? imageQuality, int? maxCount}) async {
+  Future<List<PickedFile>?> pickMultiImage({
+    double? maxWidth,
+    double? maxHeight,
+    int? imageQuality,
+    int? maxCount,
+  }) async {
     final List<dynamic>? paths = await _getMultiImagePath(
         maxWidth: maxWidth, maxHeight: maxHeight, imageQuality: imageQuality, maxCount: maxCount);
     if (paths == null) {
@@ -47,7 +51,12 @@ class MethodChannelImagePicker extends ImagePickerPlatform {
     return paths.map((dynamic path) => PickedFile(path as String)).toList();
   }
 
-  Future<List<dynamic>?> _getMultiImagePath({double? maxWidth, double? maxHeight, int? imageQuality, int? maxCount}) {
+  Future<List<dynamic>?> _getMultiImagePath({
+    double? maxWidth,
+    double? maxHeight,
+    int? imageQuality,
+    int? maxCount,
+  }) {
     if (imageQuality != null && (imageQuality < 0 || imageQuality > 100)) {
       throw ArgumentError.value(imageQuality, 'imageQuality', 'must be between 0 and 100');
     }
@@ -184,11 +193,17 @@ class MethodChannelImagePicker extends ImagePickerPlatform {
   }
 
   @override
-  Future<List<XFile>?> getMultiImage({double? maxWidth, double? maxHeight, int? imageQuality, int? maxCount}) async {
+  Future<List<XFile>?> getMultiImage({
+    double? maxWidth,
+    double? maxHeight,
+    int? imageQuality,
+    int? maxCount,
+  }) async {
     final List<dynamic>? paths = await _getMultiImagePath(
       maxWidth: maxWidth,
       maxHeight: maxHeight,
       imageQuality: imageQuality,
+      maxCount: maxCount,
     );
     if (paths == null) {
       return null;

@@ -28,7 +28,7 @@ dependencies:
     git:
       url: git@github.com:alexmay23/plugins.git
       path: packages/image_picker/image_picker_for_web
-      ref: e6fcc829a706fcc8cea56d22b17c01ca010740cf
+      ref: 872b65a5c64d2a0451d43f97d5af78383c570d68
   image_picker_platform_interface:
     git:
       url: git@github.com:alexmay23/plugins.git
