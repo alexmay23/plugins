@@ -60,8 +60,7 @@ class ImagePickerPlugin extends ImagePickerPlatform {
     int? imageQuality,
     CameraDevice preferredCameraDevice = CameraDevice.rear,
   }) {
-    final String? capture =
-        computeCaptureAttribute(source, preferredCameraDevice);
+    final String? capture = computeCaptureAttribute(source, preferredCameraDevice);
     return pickFile(accept: _kAcceptImageMimeType, capture: capture);
   }
 
@@ -83,8 +82,7 @@ class ImagePickerPlugin extends ImagePickerPlatform {
     CameraDevice preferredCameraDevice = CameraDevice.rear,
     Duration? maxDuration,
   }) {
-    final String? capture =
-        computeCaptureAttribute(source, preferredCameraDevice);
+    final String? capture = computeCaptureAttribute(source, preferredCameraDevice);
     return pickFile(accept: _kAcceptVideoMimeType, capture: capture);
   }
 
@@ -98,8 +96,7 @@ class ImagePickerPlugin extends ImagePickerPlatform {
     String? accept,
     String? capture,
   }) {
-    final html.FileUploadInputElement input =
-        createInputElement(accept, capture) as html.FileUploadInputElement;
+    final html.FileUploadInputElement input = createInputElement(accept, capture) as html.FileUploadInputElement;
     _injectAndActivate(input);
     return _getSelectedFile(input);
   }
@@ -124,8 +121,7 @@ class ImagePickerPlugin extends ImagePickerPlatform {
     int? imageQuality,
     CameraDevice preferredCameraDevice = CameraDevice.rear,
   }) async {
-    final String? capture =
-        computeCaptureAttribute(source, preferredCameraDevice);
+    final String? capture = computeCaptureAttribute(source, preferredCameraDevice);
     final List<XFile> files = await getFiles(
       accept: _kAcceptImageMimeType,
       capture: capture,
@@ -156,8 +152,7 @@ class ImagePickerPlugin extends ImagePickerPlatform {
     CameraDevice preferredCameraDevice = CameraDevice.rear,
     Duration? maxDuration,
   }) async {
-    final String? capture =
-        computeCaptureAttribute(source, preferredCameraDevice);
+    final String? capture = computeCaptureAttribute(source, preferredCameraDevice);
     final List<XFile> files = await getFiles(
       accept: _kAcceptVideoMimeType,
       capture: capture,
@@ -167,11 +162,7 @@ class ImagePickerPlugin extends ImagePickerPlatform {
 
   /// Injects a file input, and returns a list of XFile that the user selected locally.
   @override
-  Future<List<XFile>> getMultiImage({
-    double? maxWidth,
-    double? maxHeight,
-    int? imageQuality,
-  }) async {
+  Future<List<XFile>> getMultiImage({double? maxWidth, double? maxHeight, int? imageQuality, int? maxCount}) async {
     final List<XFile> images = await getFiles(
       accept: _kAcceptImageMimeType,
       multiple: true,
@@ -236,8 +227,7 @@ class ImagePickerPlugin extends ImagePickerPlatform {
   /// Handles the OnChange event from a FileUploadInputElement object
   /// Returns a list of selected files.
   List<html.File>? _handleOnChangeEvent(html.Event event) {
-    final html.FileUploadInputElement? input =
-        event.target as html.FileUploadInputElement?;
+    final html.FileUploadInputElement? input = event.target as html.FileUploadInputElement?;
     return input == null ? null : _getFilesFromInput(input);
   }
 
@@ -299,8 +289,7 @@ class ImagePickerPlugin extends ImagePickerPlatform {
   html.Element _ensureInitialized(String id) {
     html.Element? target = html.querySelector('#$id');
     if (target == null) {
-      final html.Element targetElement =
-          html.Element.tag('flt-image-picker-inputs')..id = id;
+      final html.Element targetElement = html.Element.tag('flt-image-picker-inputs')..id = id;
 
       html.querySelector('body')!.children.add(targetElement);
       target = targetElement;
@@ -349,8 +338,7 @@ typedef OverrideCreateInputFunction = html.Element Function(
 
 /// A function that extracts list of files from the file `input` passed in.
 @visibleForTesting
-typedef OverrideExtractMultipleFilesFromInputFunction = List<html.File>
-    Function(html.Element? input);
+typedef OverrideExtractMultipleFilesFromInputFunction = List<html.File> Function(html.Element? input);
 
 /// Overrides for some of the functionality above.
 @visibleForTesting

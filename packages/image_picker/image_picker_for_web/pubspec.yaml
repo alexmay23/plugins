@@ -25,7 +25,7 @@ dependencies:
     git:
       url: git@github.com:alexmay23/plugins.git
       path: packages/image_picker/image_picker_platform_interface
-      ref: fix-ios-video-pick-crash
+      ref: e6fcc829a706fcc8cea56d22b17c01ca010740cf
 
 dev_dependencies:
   flutter_test:
