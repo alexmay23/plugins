@@ -198,11 +198,7 @@ abstract class ImagePickerPlatform extends PlatformInterface {
   /// a warning message will be logged.
   ///
   /// If no images were picked, the return value is null.
-  Future<List<XFile>?> getMultiImage({
-    double? maxWidth,
-    double? maxHeight,
-    int? imageQuality,
-  }) {
+  Future<List<XFile>?> getMultiImage({double? maxWidth, double? maxHeight, int? imageQuality, int? maxCount}) {
     throw UnimplementedError('getMultiImage() has not been implemented.');
   }
 

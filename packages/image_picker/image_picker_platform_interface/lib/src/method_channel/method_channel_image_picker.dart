@@ -184,11 +184,7 @@ class MethodChannelImagePicker extends ImagePickerPlatform {
   }
 
   @override
-  Future<List<XFile>?> getMultiImage({
-    double? maxWidth,
-    double? maxHeight,
-    int? imageQuality,
-  }) async {
+  Future<List<XFile>?> getMultiImage({double? maxWidth, double? maxHeight, int? imageQuality, int? maxCount}) async {
     final List<dynamic>? paths = await _getMultiImagePath(
       maxWidth: maxWidth,
       maxHeight: maxHeight,
